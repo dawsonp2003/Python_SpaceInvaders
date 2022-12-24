@@ -1,0 +1,29 @@
+Version Details
+
+Version 0.7 Plans:
+- Redo the entire GUI:
+  - If possible, alter program for relative location printing to better form game to other screen sizes.
+  - Create objects for simple GUI elements to be created:
+    - Simple button object with text and color control, RELATIVE location printing, size control, built-in 
+      collision detection for mouse, and an action to complete
+    - Title and text elements to display data with text and color control and RELATIVE location printing
+  - Implement clicking controlls as well as highlights as to what buttons are being "hovered over"
+
+Version 0.6 Plans:
+- Comment all sections of code
+- Rewrite all program objects to better facilitate future change
+  - RELATIVE location control
+  - Simpler sequencing controls
+
+Version 0.5:
+- Imported version from personal workspace
+- Including:
+  - 10 waves with 2 bosses
+  - Multiple alienship designs
+  - Alienship health with shields
+  - Steadily increasing player bullet speed
+  - Leaderboard that saves successfully
+  - Simple and slightly glitchy GUI
+    - Includes a win screen, a game start screen, and a leaderboard display
+  - Keyboard and XBOX controller support
+  - Small, constant game screen size

@@ -1,58 +1,51 @@
+"""
+Main program file of Space Invaders
+
+This is where the program code itself will be run.  Imports the game object classes from the
+GameObjects program files.  Then it uses the program files to create the game itself
+- Combine the classes of GameObjects, Menu, and Game to create Space Invaders
+- Design the Space Invader waves
+
+Created by: Dawson Pent 
+Current Version: 0.51
+"""
+
+
+
+#Import statements 
 import random
 import pygame
 import string
 import math
 
-# Define some colors
+#Define some colors
 BLACK = (0, 0, 0)
 WHITE = (255, 255, 255)
 GREEN = (0, 255, 0)
 RED = (255, 0, 0)
 GRAY = (125, 125, 125)
-
-class TextPrint(object):
-    """
-    This is a simple class that will help us print to the screen
-    It has nothing to do with the joysticks, just outputting the
-    information.
-    """
-    def __init__(self):
-        """ Constructor """
-        self.reset()
-        self.x_pos = 10
-        self.y_pos = 10
-        self.font = pygame.font.Font(None, 20)
  
-    def printDetail(self, my_screen, text_string, color, fontSize, xPosition, yPosition):
-        """ Draw text onto the screen. """
-        newFont = pygame.font.Font(None, fontSize)
-        text_width, text_height = newFont.size(text_string)
+#Function to print text on pygame screen
+def print(my_screen, text_string, color, fontSize, xPosition, yPosition, center=True):
+    #choosing new chosen font size
+    newFont = pygame.font.Font(None, fontSize)
+    text_width, text_height = newFont.size(text_string)
 
-        xPosition -= (text_width/2)
+    #centering the text on the x and y position given
+    if center:#if center is true, center text
+        xPosition -= (text_width/2) #moving the text half of its width to the left
         yPosition -= (text_height/2)
-        text_bitmap = newFont.render(text_string, True, color)
-        my_screen.blit(text_bitmap, [xPosition, yPosition])
+    
+    #rendering new text and displaying it onto the screen
+    text_bitmap = newFont.render(text_string, True, color)
+    my_screen.blit(text_bitmap, [xPosition, yPosition])
 
-    def print(self, my_screen, text_string, color):
-        """ Draw text onto the screen. """
-        text_bitmap = self.font.render(text_string, True, color)
-        my_screen.blit(text_bitmap, [self.x_pos, self.y_pos])
-        self.y_pos += self.line_height
- 
-    def reset(self):
-        """ Reset text to the top of the screen. """
-        self.x_pos = 10
-        self.y_pos = 10
-        self.line_height = 15
- 
-    def indent(self):
-        """ Indent the next line of text """
-        self.x_pos += 10
- 
-    def unindent(self):
-        """ Unindent the next line of text """
-        self.x_pos -= 10
- 
+#Function to print text in basic format on pygame screen
+def printBasic(my_screen, text_string, color, num):
+    #using the number as the y value, display text with a constant font size and x position
+    print(my_screen, text_string, color, 20, 10, num*15, False)
+
+#global variables
 up = False
 down = False
 right = False
@@ -80,9 +73,6 @@ clock = pygame.time.Clock()
  
 # Initialize the joysticks
 pygame.joystick.init()
- 
-# Get ready to print
-textPrint = TextPrint()
  
 #loading images
 location = "C:/Users/dawso/OneDrive/Desktop/Program-   ming/Python Files/Fun Stuff/SpaceInvaders/Pictures/"
@@ -696,16 +686,16 @@ class leaderboard(object):
             self.leaderFile.write(strings)
 
     def display(self, my_screen):
-        textPrint.printDetail(my_screen, "Leaderboard", WHITE, 28, size[0]/2, 153)
+        print(my_screen, "Leaderboard", WHITE, 28, size[0]/2, 153)
         pygame.draw.line(my_screen, WHITE, (size[0]/2-65, 166), (size[0]/2+65, 166))
-        textPrint.printDetail(my_screen, "Player Name", WHITE, 24, size[0]/2-70, 190)
-        textPrint.printDetail(my_screen, "Score", WHITE, 24, size[0]/2+70, 190)
+        print(my_screen, "Player Name", WHITE, 24, size[0]/2-70, 190)
+        print(my_screen, "Score", WHITE, 24, size[0]/2+70, 190)
         if not len(self.leaderList):
-            textPrint.printDetail(my_screen, "No leaderboard players yet", WHITE, 20, size[0]/2, 205)
+            print(my_screen, "No leaderboard players yet", WHITE, 20, size[0]/2, 205)
         num = 0
         for player in self.leaderList:
-            textPrint.printDetail(my_screen, player[1], WHITE, 20, size[0]/2-70, 215 + 15*num)
-            textPrint.printDetail(my_screen, str(player[0]), WHITE, 20, size[0]/2+70, 215 + 15*num)
+            print(my_screen, player[1], WHITE, 20, size[0]/2-70, 215 + 15*num)
+            print(my_screen, str(player[0]), WHITE, 20, size[0]/2+70, 215 + 15*num)
             num += 1
 leaderBoard = leaderboard()
 
@@ -746,7 +736,6 @@ while not done:
     # First, clear the screen to black. Don't put other drawing commands
     # above this, or they will be erased with this command.
     screen.fill(BLACK)
-    textPrint.reset()
     
     # EVENT PROCESSING STEP
     for event in pygame.event.get():
@@ -837,39 +826,38 @@ while not done:
     ##Printing/acting steps
     if (ctrl and f):
         if (up):
-            textPrint.print(screen, "Up is pressed", WHITE)
+            printBasic(screen, "Up is pressed", WHITE, 1)
         else:
-            textPrint.print(screen, "No up", WHITE)
+            printBasic(screen, "No up", WHITE, 1)
         if (down):
-            textPrint.print(screen, "Down is pressed", WHITE)
+            printBasic(screen, "Down is pressed", WHITE, 2)
         else:
-            textPrint.print(screen, "No down", WHITE)
+            printBasic(screen, "No down", WHITE, 2)
         if (left):
-            textPrint.print(screen, "Left is pressed", WHITE)
+            printBasic(screen, "Left is pressed", WHITE, 3)
         else:
-            textPrint.print(screen, "No left", WHITE)
+            printBasic(screen, "No left", WHITE, 3)
         if (right):
-            textPrint.print(screen, "Right is pressed", WHITE)
+            printBasic(screen, "Right is pressed", WHITE, 4)
         else:
-            textPrint.print(screen, "No right", WHITE)
+            printBasic(screen, "No right", WHITE, 4)
         if (space):
-            textPrint.print(screen, "Space is pressed", WHITE)
+            printBasic(screen, "Space is pressed", WHITE, 5)
         else:
-            textPrint.print(screen, "No space", WHITE)
+            printBasic(screen, "No space", WHITE, 5)
         if (click):
-            textPrint.print(screen, "Click is pressed", WHITE)
+            printBasic(screen, "Click is pressed", WHITE, 6)
         else:
-            textPrint.print(screen, "No click", WHITE)
-        textPrint.print(screen, "", WHITE)
-        textPrint.print(screen, "{} Ticks".format(tick), WHITE)
-        textPrint.print(screen, "{} Aliens".format(len(alien.x_pos)), WHITE)
-        textPrint.print(screen, "{} Shots".format(len(bullet.x_pos)), WHITE)
-        textPrint.print(screen, "{} Bombs".format(len(bomb.x_pos)), WHITE)
-        textPrint.print(screen, "{} Barrages".format(len(barrage.x_pos)), WHITE)
-        textPrint.print(screen, "{} Shrapnel".format(len(shrapnel.x_pos)), WHITE)
-        textPrint.print(screen, "{} AnimationDone".format(animationDone), WHITE)
-        textPrint.print(screen, "{} Wave".format(wave), WHITE)
-        textPrint.print(screen, "{} Score".format(totalScore + waveScore), WHITE)
+            printBasic(screen, "No click", WHITE, 6)
+        printBasic(screen, "{} Ticks".format(tick), WHITE, 8)
+        printBasic(screen, "{} Aliens".format(len(alien.x_pos)), WHITE, 9)
+        printBasic(screen, "{} Shots".format(len(bullet.x_pos)), WHITE, 10)
+        printBasic(screen, "{} Bombs".format(len(bomb.x_pos)), WHITE, 11)
+        printBasic(screen, "{} Barrages".format(len(barrage.x_pos)), WHITE, 12)
+        printBasic(screen, "{} Shrapnel".format(len(shrapnel.x_pos)), WHITE, 13)
+        printBasic(screen, "{} AnimationDone".format(animationDone), WHITE, 14)
+        printBasic(screen, "{} Wave".format(wave), WHITE, 15)
+        printBasic(screen, "{} Score".format(totalScore + waveScore), WHITE, 16)
     #if (ctrl and space and up):
     #    alien.clear()
     #    up = False
@@ -904,12 +892,12 @@ while not done:
         
     if not alien.gameStarted:
         if animationDone == 0:
-            textPrint.printDetail(screen, "Space Invaders", WHITE, 50, size[0]/2, 100)
+            print(screen, "Space Invaders", WHITE, 50, size[0]/2, 100)
             leaderBoard.display(screen)
             if joystick_count == 0:
-                textPrint.printDetail(screen, "Hit space to begin", color, 22, size[0]/2, (size[1]-100)/2+180)
+                print(screen, "Hit space to begin", color, 22, size[0]/2, (size[1]-100)/2+180)
             if joystick_count > 0:
-                textPrint.printDetail(screen, "Hit A to begin", color, 22, size[0]/2, (size[1]-100)/2-180)
+                print(screen, "Hit A to begin", color, 22, size[0]/2, (size[1]-100)/2-180)
         elif animationDone == -2:
             tick = 0
             animationDone = -1
@@ -917,15 +905,15 @@ while not done:
             typing = True
         elif animationDone == -1 and not typing:
             if justWon:
-                textPrint.printDetail(screen, "Game Won", WHITE, 50, size[0]/2, (size[1]-100)/2-120)
+                print(screen, "Game Won", WHITE, 50, size[0]/2, (size[1]-100)/2-120)
             else:
-                textPrint.printDetail(screen, "Game Lost", WHITE, 50, size[0]/2, (size[1]-100)/2-120)
-            textPrint.printDetail(screen, "You killed {} aliens".format(alien.alienKills), WHITE, 50, size[0]/2, (size[1]-100)/2-60)
-            textPrint.printDetail(screen, "with a score of {}".format(totalScore), WHITE, 50, size[0]/2, (size[1]-100)/2)
+                print(screen, "Game Lost", WHITE, 50, size[0]/2, (size[1]-100)/2-120)
+            print(screen, "You killed {} aliens".format(alien.alienKills), WHITE, 50, size[0]/2, (size[1]-100)/2-60)
+            print(screen, "with a score of {}".format(totalScore), WHITE, 50, size[0]/2, (size[1]-100)/2)
             if joystick_count == 0:
-                textPrint.printDetail(screen, "Hit space to go back to title screen", WHITE, 20, size[0]/2, (size[1]-100)/2+150)
+                print(screen, "Hit space to go back to title screen", WHITE, 20, size[0]/2, (size[1]-100)/2+150)
             if joystick_count > 0:
-                textPrint.printDetail(screen, "Hit A to go back to title screen", WHITE, 20, size[0]/2, (size[1]-100)/2+150)
+                print(screen, "Hit A to go back to title screen", WHITE, 20, size[0]/2, (size[1]-100)/2+150)
             savable = False
             if len(leaderBoard.leaderList) < 15:
                 savable = True
@@ -933,7 +921,7 @@ while not done:
                 if leader[0] < totalScore:
                     savable = True
             if savable:
-                textPrint.printDetail(screen, "Hit V to save on leaderboard", WHITE, 20, size[0]/2, (size[1]-100)/2+165)
+                print(screen, "Hit V to save on leaderboard", WHITE, 20, size[0]/2, (size[1]-100)/2+165)
             if space:
                 space = False
                 animationDone = 0
@@ -954,16 +942,16 @@ while not done:
                 typing = True
         elif animationDone == -1 and typing:
             if justWon:
-                textPrint.printDetail(screen, "Game Won", WHITE, 50, size[0]/2, (size[1]-100)/2-120)
+                print(screen, "Game Won", WHITE, 50, size[0]/2, (size[1]-100)/2-120)
             else:
-                textPrint.printDetail(screen, "Game Lost", WHITE, 50, size[0]/2, (size[1]-100)/2-120)
-            textPrint.printDetail(screen, "You killed {} aliens".format(alien.alienKills), WHITE, 50, size[0]/2, (size[1]-100)/2-60)
-            textPrint.printDetail(screen, "with a score of {}".format(totalScore), WHITE, 50, size[0]/2, (size[1]-100)/2)
+                print(screen, "Game Lost", WHITE, 50, size[0]/2, (size[1]-100)/2-120)
+            print(screen, "You killed {} aliens".format(alien.alienKills), WHITE, 50, size[0]/2, (size[1]-100)/2-60)
+            print(screen, "with a score of {}".format(totalScore), WHITE, 50, size[0]/2, (size[1]-100)/2)
             if joystick_count == 0:
-                textPrint.printDetail(screen, "Hit space to go back to title screen", WHITE, 20, size[0]/2, (size[1]-100)/2+180)
+                print(screen, "Hit space to go back to title screen", WHITE, 20, size[0]/2, (size[1]-100)/2+180)
             if joystick_count > 0:
-                textPrint.printDetail(screen, "Hit A to go back to title screen", WHITE, 20, size[0]/2, (size[1]-100)/2+180)
-            textPrint.printDetail(screen, "Hit V to not save on leaderboard", WHITE, 20, size[0]/2, (size[1]-100)/2+165)
+                print(screen, "Hit A to go back to title screen", WHITE, 20, size[0]/2, (size[1]-100)/2+180)
+            print(screen, "Hit V to not save on leaderboard", WHITE, 20, size[0]/2, (size[1]-100)/2+165)
             if v:
                 v = False
                 typing = False
@@ -1012,7 +1000,7 @@ while not done:
                 case 3:
                     move = 77
             nameString = string.ascii_uppercase[newName[0]] + "   " + string.ascii_uppercase[newName[1]] + "   " + string.ascii_uppercase[newName[2]]
-            textPrint.printDetail(screen, nameString, WHITE, 70, size[0]/2, (size[1]-100)/2+85)
+            print(screen, nameString, WHITE, 70, size[0]/2, (size[1]-100)/2+85)
             pygame.draw.line(screen, color, (size[0]/2-20+move,(size[1]-100)/2+120), (size[0]/2+20+move,(size[1]-100)/2+120), 3)
 
         if space and animationDone == 0:
@@ -1026,9 +1014,9 @@ while not done:
     #Wave Detection
     if ( (animationDone%2 != 0 and animationDone > 0) or animationDone == 12) and animationDone != 23:
         if wave%5 != 0 and animationDone%11 != 0:
-            textPrint.printDetail(screen, "Wave {}".format(wave), WHITE, 50, size[0]/2, (size[1]-100)/2-60)
+            print(screen, "Wave {}".format(wave), WHITE, 50, size[0]/2, (size[1]-100)/2-60)
         elif animationDone%11 != 0:
-            textPrint.printDetail(screen, "Boss {}".format(int(wave/5)), RED, 50, size[0]/2, (size[1]-100)/2-60)
+            print(screen, "Boss {}".format(int(wave/5)), RED, 50, size[0]/2, (size[1]-100)/2-60)
 
         if animationDone%11 != 0:
             match wave:
@@ -1069,15 +1057,15 @@ while not done:
         alien.clear()
         barrage.clear()
         shrapnel.clear()
-        textPrint.printDetail(screen, "Part {} Won!".format(int(wave/5)), WHITE, 50, size[0]/2, (size[1]-100)/2-120)
-        textPrint.printDetail(screen, "You killed {} Aliens".format(alien.alienKills), WHITE, 50, size[0]/2, (size[1]-100)/2-60)
-        textPrint.printDetail(screen, "and", WHITE, 50, size[0]/2, (size[1]-100)/2-23)
-        textPrint.printDetail(screen, "Successfully Beat {} Boss!".format(int(wave/5)), WHITE, 50, size[0]/2, (size[1]-100)/2+26)
+        print(screen, "Part {} Won!".format(int(wave/5)), WHITE, 50, size[0]/2, (size[1]-100)/2-120)
+        print(screen, "You killed {} Aliens".format(alien.alienKills), WHITE, 50, size[0]/2, (size[1]-100)/2-60)
+        print(screen, "and", WHITE, 50, size[0]/2, (size[1]-100)/2-23)
+        print(screen, "Successfully Beat {} Boss!".format(int(wave/5)), WHITE, 50, size[0]/2, (size[1]-100)/2+26)
         if animationDone == 11:
             if joystick_count == 0:
-                textPrint.printDetail(screen, "Hit space to continue", WHITE, 20, size[0]/2, (size[1]-100)/2+80)
+                print(screen, "Hit space to continue", WHITE, 20, size[0]/2, (size[1]-100)/2+80)
             if joystick_count > 0:
-                textPrint.printDetail(screen, "Hit A to continue", WHITE, 20, size[0]/2, (size[1]-100)/2+80)
+                print(screen, "Hit A to continue", WHITE, 20, size[0]/2, (size[1]-100)/2+80)
             if space and not justWon:
                 tick = 0
                 animationDone += 1
@@ -1087,9 +1075,9 @@ while not done:
                 justWon = False
         else:
             if joystick_count == 0:
-                textPrint.printDetail(screen, "Hit space to Save Score", WHITE, 20, size[0]/2, (size[1]-100)/2+80)
+                print(screen, "Hit space to Save Score", WHITE, 20, size[0]/2, (size[1]-100)/2+80)
             if joystick_count > 0:
-                textPrint.printDetail(screen, "Hit A to Save Score", WHITE, 20, size[0]/2, (size[1]-100)/2+80)
+                print(screen, "Hit A to Save Score", WHITE, 20, size[0]/2, (size[1]-100)/2+80)
             if space and not justWon:
                 tick = 0
                 totalScore += 5000

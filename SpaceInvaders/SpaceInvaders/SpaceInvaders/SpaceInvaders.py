@@ -45,18 +45,6 @@ def printBasic(my_screen, text_string, color, num):
     #using the number as the y value, display text with a constant font size and x position
     print(my_screen, text_string, color, 20, 10, num*15, False)
 
-#global variables
-up = False
-down = False
-right = False
-left = False
-space = False
-click = False
-ctrl = False
-f = False
-v = False
-tick = 0
-
 ##Initalizing pygame
 pygame.init()
 
@@ -96,6 +84,7 @@ bombs = pygame.image.load(location + "Bomb.jpg")
 explosion = pygame.image.load(location + "Explosion.jpg")
 
 # ------------ Object Methods ------------ #
+# --- Game Objects --- #
 class Alien(object):
     def __init__(self):
         """ Constructor """
@@ -235,11 +224,13 @@ class Player(object):
         """ Constructor """
         self.x_pos = int(size[0]/2) - ship.get_width()/2
         self.y_pos = int(size[1]-100) - ship.get_height()
+        self.moveDistance = 5
         self.health = 1
         self.alive = True
         self.lastShot = 0
         self.lastTick = 0
         self.shotSide = 0
+        self.shootSpeed = 20
 
     def clear(self, restartPosition):
         if restartPosition:
@@ -250,13 +241,15 @@ class Player(object):
         self.lastShot = 0
         self.lastTick = 0
         self.shotSide = 0
+        self.shootSpeed = 20
+        self.moveDistance = 5
 
-    def move(self, moveDistance, shotInterval):
-        if left and not right and self.alive and self.x_pos >= 20:
-            self.x_pos -= moveDistance
-        if right and not left and  self.alive and self.x_pos <= size[0] - ship.get_width() - 20:
-            self.x_pos += moveDistance
-        if space and self.lastShot >= shotInterval and self.alive and alien.gameStarted:
+    def move(self):
+        if c.key_values[3] and not c.key_values[2] and self.alive and self.x_pos >= 20:
+            self.x_pos -= self.moveDistance
+        if c.key_values[2] and not c.key_values[3] and  self.alive and self.x_pos <= size[0] - ship.get_width() - 20:
+            self.x_pos += self.moveDistance
+        if c.key_values[4] and self.lastShot >= self.shootSpeed and self.alive and alien.gameStarted:
             if self.shotSide != 0:
                 self.shotSide += 1
                 if self.shotSide > 2:
@@ -268,9 +261,9 @@ class Player(object):
             else:
                  bullet.newShot(self.x_pos+ship.get_width()/2-18-shot.get_width(), self.y_pos)
             self.lastShot = 0
-        if tick != self.lastTick:
+        if gc.tick != self.lastTick:
             self.lastShot += 1
-            self.lastTick = tick
+            self.lastTick = gc.tick
 
     def die(self):
         if self.health:
@@ -647,6 +640,47 @@ class Shrapnel(object):
                 my_screen.blit(shrapnels, (self.x_pos[num], self.y_pos[num]))
 shrapnel = Shrapnel()
 
+
+# --- Game Controls --- #
+class Controller(object):
+    """ Class to hold the global player control variables """
+    
+    def __init__(self):
+        #key values
+          #up/w, down/s, right/d, left/a, space, ctrl, f, v
+        self.key_values = [0, 0, 0, 0, 0, 0, 0, 0] #CHANGE TO DICTIONARY WITH KEY NAME AS THE KEY
+
+        #mouse values
+          #click, mouseX, and mouseY
+        self.mouse_values = [0, 0, 0]
+    
+    def keyChange(self, index):
+        self.key_values[index] = not self.key_values[index]
+
+    def mouseClick(self):
+        self.mouse_values[0] = True
+    def mouseRelease(self):
+        self.mouse_values[0] = False
+    
+    def mouseMove(self, newX, newY):
+        self.mouse_values[1] = newX
+        self.mouse_values[2] = newY
+c = Controller()
+
+
+class gameControl(object):
+    """ Class to control the overall game including sequencing """
+
+    def __init__(self):
+        self.tick = 0
+
+    def tickIncrement(self, amount):
+        self.tick += amount
+        if self.tick >= 1000:
+            self.tick -= 1000
+gc = gameControl()
+
+
 class leaderboard(object):
     def __init__(self):
         self.leaderList = []
@@ -699,10 +733,12 @@ class leaderboard(object):
             num += 1
 leaderBoard = leaderboard()
 
+
+#-new wave method
 def newWave(alienX, alienY, alienWidth, alienHeight, startingX, aDone, shieldRows):
     bullet.clear()
     bomb.clear()
-    yValue = -(2 * alienX * alienY) + int((tick/60) * (alienX * alienY))
+    yValue = -(2 * alienX * alienY) + int((gc.tick/60) * (alienX * alienY))
     alien.newAliens(alienX, alienY, alienWidth, alienHeight, True, yValue, startingX, shieldRows)
     if (yValue >= -10):
         alien.gameStarted = True
@@ -712,22 +748,21 @@ def newWave(alienX, alienY, alienWidth, alienHeight, startingX, aDone, shieldRow
 
 # -------- Main Program Loop ----------
 #loop variables
-movingDistance = 5
-pressed = False
-joystickDisconnected = True
-healthAdded = False
 justWon = False
 animationDone = 0
 wave = 1
 lastKill = 0
 waveScore = 0
 totalScore = 0
+
 typing = True
 letter = 1
 newName = [0, 0, 0]
-shootSpeed = 5
+
 bef = -50
 aft = 0
+
+joystickDisconnected = False
 while not done:
     #getting joystick count
     joystick_count = pygame.joystick.get_count()
@@ -746,40 +781,40 @@ while not done:
         if joystick_count == 0:
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_UP or event.key == pygame.K_w:
-                    up = True
+                    c.key_values[0] = True
                 if event.key == pygame.K_DOWN or event.key == pygame.K_s:
-                    down = True
+                    c.key_values[1] = True
                 if event.key == pygame.K_LEFT or event.key == pygame.K_a:
-                    left = True
+                    c.key_values[3] = True
                 if event.key == pygame.K_RIGHT or event.key == pygame.K_d:
-                    right = True
+                    c.key_values[2] = True
                 if event.key == pygame.K_SPACE:
-                    space = True
+                    c.key_values[4] = True
                 if event.key == pygame.K_LCTRL:
-                    ctrl = not ctrl
+                    c.key_values[5] = True
                 if event.key == pygame.K_f:
-                    f = not f
+                    c.key_values[6] = True
                 if event.key == pygame.K_v:
-                    v = True
+                    c.key_values[7] = True
 
             elif event.type == pygame.KEYUP:
                 if event.key == pygame.K_UP or event.key == pygame.K_w:
-                    up = False
+                    c.key_values[0] = False
                 if event.key == pygame.K_DOWN or event.key == pygame.K_s:
-                    down = False
+                    c.key_values[1] = False
                 if event.key == pygame.K_LEFT or event.key == pygame.K_a:
-                    left = False
+                    c.key_values[3] = False
                 if event.key == pygame.K_RIGHT or event.key == pygame.K_d:
-                    right = False
+                    c.key_values[2] = False
                 if event.key == pygame.K_SPACE:
-                    space = False
+                    c.key_values[4] = False
                 if event.key == pygame.K_v:
-                    v = False
+                    c.key_values[7] = False
 
             elif event.type == pygame.MOUSEBUTTONDOWN:
-                click = True
+                c.mouseClick()
             elif event.type == pygame.MOUSEBUTTONUP:
-                click = False
+                c.mouseRelease()
 
     #getting joystick input
     try:
@@ -791,24 +826,22 @@ while not done:
             # Usually axis run in pairs, up/down for one, and left/right for
             # the other.
             joystickDistance = int( joystick.get_axis(0)*10 ) / 10
-            movingDistance = math.sqrt( pow(5*joystickDistance,2) )
+            player.moveDistance = math.sqrt( pow(5*joystickDistance,2) )
             if joystick.get_axis(0) > 0:
-                right = True
-                left = False
+                c.key_values[2] = True
+                c.key_values[3] = False
             if joystick.get_axis(0) < 0:
-                right = False
-                left = True
+                c.key_values[2] = False
+                c.key_values[3] = True
 
-            if joystick.get_button(0) == 1 and not pressed:
-                space = True
-                pressed = True
+            if joystick.get_button(0) == 1:
+                c.key_values[4] = True
             elif joystick.get_button(0) == 0:
-                space = False
-                pressed = False
+                c.key_values[4] = False
         elif joystickDisconnected:
-            movingDistance = 5
-            right = False
-            left = False
+            player.moveDistance = 5
+            c.key_values[2] = False
+            c.key_values[3] = False
             joystickDisconnected = False
     except:
         1
@@ -821,35 +854,35 @@ while not done:
     bomb.display(screen)
     if boss.visible:
         boss.display(screen)
-        boss.runBoss(tick, screen)
+        boss.runBoss(gc.tick, screen)
 
     ##Printing/acting steps
-    if (ctrl and f):
-        if (up):
+    if (c.key_values[5] and c.key_values[6]):
+        if (c.key_values[0]):
             printBasic(screen, "Up is pressed", WHITE, 1)
         else:
             printBasic(screen, "No up", WHITE, 1)
-        if (down):
+        if (c.key_values[1]):
             printBasic(screen, "Down is pressed", WHITE, 2)
         else:
             printBasic(screen, "No down", WHITE, 2)
-        if (left):
+        if (c.key_values[3]):
             printBasic(screen, "Left is pressed", WHITE, 3)
         else:
             printBasic(screen, "No left", WHITE, 3)
-        if (right):
+        if (c.key_values[2]):
             printBasic(screen, "Right is pressed", WHITE, 4)
         else:
             printBasic(screen, "No right", WHITE, 4)
-        if (space):
+        if (c.key_values[4]):
             printBasic(screen, "Space is pressed", WHITE, 5)
         else:
             printBasic(screen, "No space", WHITE, 5)
-        if (click):
-            printBasic(screen, "Click is pressed", WHITE, 6)
+        if (c.mouse_values[0]):
+            printBasic(screen, "Click is pressed at {} x and {} y.".format(c.mouse_values[1], c.mouse_values[2]), WHITE, 6)
         else:
             printBasic(screen, "No click", WHITE, 6)
-        printBasic(screen, "{} Ticks".format(tick), WHITE, 8)
+        printBasic(screen, "{} Ticks".format(gc.tick), WHITE, 8)
         printBasic(screen, "{} Aliens".format(len(alien.x_pos)), WHITE, 9)
         printBasic(screen, "{} Shots".format(len(bullet.x_pos)), WHITE, 10)
         printBasic(screen, "{} Bombs".format(len(bomb.x_pos)), WHITE, 11)
@@ -865,16 +898,16 @@ while not done:
     #Menu Decisions/Prints
     sep = 40
     change = 150
-    if tick%sep == 0:
-        aft = tick
+    if gc.tick%sep == 0:
+        aft = gc.tick
         if bef == 0:
             bef = sep
         else:
             bef = 0
     if bef == 0:
-        color = (255-int((tick-aft)/sep*change), 255-int((tick-aft)/sep*change), 255-int((tick-aft)/sep*change))
+        color = (255-int((gc.tick-aft)/sep*change), 255-int((gc.tick-aft)/sep*change), 255-int((gc.tick-aft)/sep*change))
     else:
-        color = (255-int((bef-(tick-aft))/sep*change), 255-int((bef-(tick-aft))/sep*change), 255-int((bef-(tick-aft))/sep*change))
+        color = (255-int((bef-(gc.tick-aft))/sep*change), 255-int((bef-(gc.tick-aft))/sep*change), 255-int((bef-(gc.tick-aft))/sep*change))
     r,g,b = color
     if r > 255:
         r = 255
@@ -899,9 +932,9 @@ while not done:
             if joystick_count > 0:
                 print(screen, "Hit A to begin", color, 22, size[0]/2, (size[1]-100)/2-180)
         elif animationDone == -2:
-            tick = 0
+            gc.tick = 0
             animationDone = -1
-            space = False
+            c.key_values[4] = False
             typing = True
         elif animationDone == -1 and not typing:
             if justWon:
@@ -922,8 +955,8 @@ while not done:
                     savable = True
             if savable:
                 print(screen, "Hit V to save on leaderboard", WHITE, 20, size[0]/2, (size[1]-100)/2+165)
-            if space:
-                space = False
+            if c.key_values[4]:
+                c.key_values[4] = False
                 animationDone = 0
                 alien.alienKills = 0
                 alien.limitedAlienKills = 1
@@ -937,8 +970,8 @@ while not done:
                 barrage.clear()
                 shrapnel.clear()
                 boss.visible = False
-            if v and savable:
-                v = False
+            if c.key_values[7] and savable:
+                c.key_values[7] = False
                 typing = True
         elif animationDone == -1 and typing:
             if justWon:
@@ -952,33 +985,33 @@ while not done:
             if joystick_count > 0:
                 print(screen, "Hit A to go back to title screen", WHITE, 20, size[0]/2, (size[1]-100)/2+180)
             print(screen, "Hit V to not save on leaderboard", WHITE, 20, size[0]/2, (size[1]-100)/2+165)
-            if v:
-                v = False
+            if c.key_values[7]:
+                c.key_values[7] = False
                 typing = False
-            if left:
-                left = False 
+            if c.key_values[3]:
+                c.key_values[3] = False 
                 letter -= 1
                 if letter <= 0:
                     letter = 3
-            if right:
-                right = False
+            if c.key_values[2]:
+                c.key_values[2] = False
                 letter += 1
                 if letter > 3:
                     letter = 1
-            if up:
-                up = False
+            if c.key_values[0]:
+                c.key_values[0] = False
                 newName[letter-1] += 1
                 if newName[letter-1] > 25:
                     newName[letter-1] = 0
-            if down:
-                down = False
+            if c.key_values[1]:
+                c.key_values[1] = False
                 newName[letter-1] -= 1
                 if newName[letter-1] < 0:
                     newName[letter-1] = 25
-            if space:
+            if c.key_values[4]:
                 strings = string.ascii_uppercase[newName[0]] + string.ascii_uppercase[newName[1]] + string.ascii_uppercase[newName[2]]
                 leaderBoard.add(strings, totalScore)
-                space = False
+                c.key_values[4] = False
                 animationDone = 0
                 alien.alienKills = 0
                 alien.limitedAlienKills = 1
@@ -1003,10 +1036,10 @@ while not done:
             print(screen, nameString, WHITE, 70, size[0]/2, (size[1]-100)/2+85)
             pygame.draw.line(screen, color, (size[0]/2-20+move,(size[1]-100)/2+120), (size[0]/2+20+move,(size[1]-100)/2+120), 3)
 
-        if space and animationDone == 0:
+        if c.key_values[4] and animationDone == 0:
             animationDone = 1
             wave = 1
-            tick = 0
+            gc.tick = 0
             totalScore = 0
             waveScore = 0
             lastKill = 0
@@ -1022,35 +1055,35 @@ while not done:
             match wave:
                 case 1:
                     animationDone = newWave(10, 5, 30, 30, size[0]/2, animationDone, 0)
-                    shootSpeed = 20
+                    player.shootSpeed = 20
                 case 2:
                     animationDone = newWave(7, 10, 30, 30, size[0]/2, animationDone, 0)
-                    shootSpeed = 15
+                    player.shootSpeed = 15
                 case 3:
                     animationDone = newWave(12, 8, 30, 30, size[0]/2, animationDone, 0)
-                    shootSpeed = 10
+                    player.shootSpeed = 10
                 case 4:
                     animationDone = newWave(25, 3, 20, 30, size[0]/2, animationDone, 0)
-                    shootSpeed = 5
+                    player.shootSpeed = 5
                 case 5:
-                    animationDone = boss.newBoss(screen, 1, tick, animationDone, 17, 7, 2, 0, 8)
+                    animationDone = boss.newBoss(screen, 1, gc.tick, animationDone, 17, 7, 2, 0, 8)
                     player.shotSide = 1
-                    shootSpeed = 8
+                    player.shootSpeed = 8
                 case 6:
                     animationDone = newWave(10, 5, 30, 30, size[0]/2, animationDone, 2)
-                    shootSpeed = 6
+                    player.shootSpeed = 6
                 case 7:
                     animationDone = newWave(8, 12, 30, 30, size[0]/2, animationDone, 8)
-                    shootSpeed = 5
+                    player.shootSpeed = 5
                 case 8:
                     animationDone = newWave(12, 8, 30, 30, size[0]/2, animationDone, 8)
-                    shootSpeed = 3
+                    player.shootSpeed = 3
                 case 9:
                     animationDone = newWave(23, 5, 20, 26, size[0]/2, animationDone, 3)
-                    shootSpeed = 2
+                    player.shootSpeed = 2
                 case 10:
-                    animationDone = boss.newBoss(screen, 2, tick, animationDone, 40, 10, 2, 2, 5)
-                    shootSpeed = 2
+                    animationDone = boss.newBoss(screen, 2, gc.tick, animationDone, 40, 10, 2, 2, 5)
+                    player.shootSpeed = 2
     if (animationDone == 11 or animationDone == 23) and animationDone:
         bullet.clear()
         bomb.clear()
@@ -1066,33 +1099,33 @@ while not done:
                 print(screen, "Hit space to continue", WHITE, 20, size[0]/2, (size[1]-100)/2+80)
             if joystick_count > 0:
                 print(screen, "Hit A to continue", WHITE, 20, size[0]/2, (size[1]-100)/2+80)
-            if space and not justWon:
-                tick = 0
+            if c.key_values[4] and not justWon:
+                gc.tick = 0
                 animationDone += 1
                 boss.visible = False
                 justWon = True
-            elif not space:
+            elif not c.key_values[4]:
                 justWon = False
         else:
             if joystick_count == 0:
                 print(screen, "Hit space to Save Score", WHITE, 20, size[0]/2, (size[1]-100)/2+80)
             if joystick_count > 0:
                 print(screen, "Hit A to Save Score", WHITE, 20, size[0]/2, (size[1]-100)/2+80)
-            if space and not justWon:
-                tick = 0
+            if c.key_values[4] and not justWon:
+                gc.tick = 0
                 totalScore += 5000
                 boss.visible = False
                 justWon = True
                 alien.gameLost = True
                 typing = True
-            elif not space:
+            elif not c.key_values[4]:
                 justWon = False
                 
     if alien.alienKills != lastKill:
         lastKill = alien.alienKills
         waveScore = lastKill*wave
     if len(alien.x_pos) == 0 and alien.gameStarted and player.alive and animationDone not in [9, 11, 12, 19, 21, 23] and not boss.visible:
-        tick = 0
+        gc.tick = 0
         animationDone += 1
         wave += 1
         totalScore += waveScore
@@ -1102,12 +1135,12 @@ while not done:
     #Object Decisions
     if (animationDone%2==0 and animationDone > 1) or animationDone == -1:
         alien.move(3, 24)
-        alien.newBomb(tick)
-        player.move(movingDistance, shootSpeed)
+        alien.newBomb(gc.tick)
+        player.move()
         bullet.move(8)
         bomb.move(4)
     else:
-        player.move(movingDistance, 10001)
+        player.move()
 
     if alien.gameLost and animationDone > 1:
         animationDone = -2
@@ -1120,9 +1153,7 @@ while not done:
 
     # Limit to 60 frames per second
     clock.tick(60)
-    tick += 1
-    if (tick == 1000):
-        tick = 0
+    gc.tickIncrement(1)
  
 # Close the window and quit.
 # If you forget this line, the program will 'hang'
